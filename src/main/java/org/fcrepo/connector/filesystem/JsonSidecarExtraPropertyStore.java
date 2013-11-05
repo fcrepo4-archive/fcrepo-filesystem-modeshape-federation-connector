@@ -7,10 +7,10 @@
  * individual contributors.
  *
  * ModeShape is free software. Unless otherwise indicated, all code in ModeShape
- * is licensed to you under the terms of the GNU Lesser General Public License
- * as published by the Free Software Foundation; either version 2.1 of
+ * is licensed to you under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
  * the License, or (at your option) any later version.
- *
+ * 
  * ModeShape is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
@@ -21,7 +21,6 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.fcrepo.connector.filesystem;
 
 import java.io.File;
@@ -32,6 +31,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.infinispan.schematic.Schematic;
 import org.infinispan.schematic.document.Document;
 import org.infinispan.schematic.document.EditableDocument;
@@ -43,23 +43,19 @@ import org.modeshape.jcr.value.Name;
 import org.modeshape.jcr.value.Property;
 
 /**
- * An {@link ExtraPropertiesStore} implementation that stores extra properties
- * in JSON sidecar files adjacent to the actual file or directory corresponding
- * to the external node.
+ * An {@link ExtraPropertiesStore} implementation that stores extra properties in JSON sidecar files adjacent to the actual file
+ * or directory corresponding to the external node.
  */
 class JsonSidecarExtraPropertyStore implements ExtraPropertiesStore {
 
     public static final String DEFAULT_EXTENSION = ".modeshape.json";
-
-    public static final String DEFAULT_RESOURCE_EXTENSION =
-        ".content.modeshape.json";
+    public static final String DEFAULT_RESOURCE_EXTENSION = ".content.modeshape.json";
 
     private final FileSystemConnector connector;
-
     private final DocumentTranslator translator;
 
-    protected JsonSidecarExtraPropertyStore(
-        final FileSystemConnector connector, final DocumentTranslator translator) {
+    protected JsonSidecarExtraPropertyStore( final FileSystemConnector connector,
+            final DocumentTranslator translator ) {
         this.connector = connector;
         this.translator = translator;
     }
@@ -70,7 +66,7 @@ class JsonSidecarExtraPropertyStore implements ExtraPropertiesStore {
     }
 
     @Override
-    public Map<Name, Property> getProperties(final String id) {
+    public Map<Name, Property> getProperties( final String id ) {
         final File sidecarFile = sidecarFile(id);
         if (!sidecarFile.exists()) {
             return NO_PROPERTIES;
@@ -86,8 +82,8 @@ class JsonSidecarExtraPropertyStore implements ExtraPropertiesStore {
     }
 
     @Override
-    public void updateProperties(final String id,
-        final Map<Name, Property> properties) {
+    public void updateProperties( final String id,
+            final Map<Name, Property> properties ) {
         final File sidecarFile = sidecarFile(id);
         try {
             EditableDocument document = null;
@@ -98,8 +94,7 @@ class JsonSidecarExtraPropertyStore implements ExtraPropertiesStore {
                 sidecarFile.createNewFile();
                 document = Schematic.newDocument();
             } else {
-                final Document existing =
-                    read(new FileInputStream(sidecarFile));
+                final Document existing = read(new FileInputStream(sidecarFile));
                 document = Schematic.newDocument(existing);
             }
             for (final Map.Entry<Name, Property> entry : properties.entrySet()) {
@@ -117,8 +112,8 @@ class JsonSidecarExtraPropertyStore implements ExtraPropertiesStore {
     }
 
     @Override
-    public void storeProperties(final String id,
-        final Map<Name, Property> properties) {
+    public void storeProperties( final String id,
+            final Map<Name, Property> properties ) {
         final File sidecarFile = sidecarFile(id);
         try {
             if (!sidecarFile.exists()) {
@@ -140,12 +135,12 @@ class JsonSidecarExtraPropertyStore implements ExtraPropertiesStore {
         }
     }
 
-    protected Document read(final InputStream stream) throws IOException {
+    protected Document read( final InputStream stream ) throws IOException {
         return Json.read(stream);
     }
 
-    protected void write(final Document document, final OutputStream stream)
-        throws IOException {
+    protected void write( final Document document,
+            final OutputStream stream ) throws IOException {
         Json.write(document, stream);
     }
 
@@ -154,11 +149,11 @@ class JsonSidecarExtraPropertyStore implements ExtraPropertiesStore {
     }
 
     protected String resourceExtension() {
-        return DEFAULT_EXTENSION;
+        return DEFAULT_RESOURCE_EXTENSION;
     }
 
     @Override
-    public boolean removeProperties(final String id) {
+    public boolean removeProperties( final String id ) {
         final File file = sidecarFile(id);
         if (!file.exists()) {
             return false;
@@ -167,7 +162,7 @@ class JsonSidecarExtraPropertyStore implements ExtraPropertiesStore {
         return true;
     }
 
-    protected File sidecarFile(final String id) {
+    protected File sidecarFile( final String id ) {
         final File actualFile = connector.fileFor(id);
         String extension = extension();
         if (connector.isContentNode(id)) {
