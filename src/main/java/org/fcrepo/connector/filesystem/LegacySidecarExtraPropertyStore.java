@@ -10,7 +10,7 @@
  * is licensed to you under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation; either version 2.1 of
  * the License, or (at your option) any later version.
- *
+ * 
  * ModeShape is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
@@ -21,7 +21,6 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.fcrepo.connector.filesystem;
 
 import java.io.File;
@@ -36,8 +35,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.jcr.NamespaceRegistry;
 import javax.jcr.RepositoryException;
+
 import org.modeshape.common.text.QuoteEncoder;
 import org.modeshape.common.text.TextDecoder;
 import org.modeshape.common.text.TextEncoder;
@@ -58,16 +59,14 @@ import org.modeshape.jcr.value.ValueFactory;
 import org.modeshape.jcr.value.ValueFormatException;
 
 /**
- * An {@link ExtraPropertiesStore} implementation that stores extra properties
- * in legacy sidecar files adjacent to the actual file or directory
- * corresponding to the external node. The format of these legacy files is
- * compatible with thosed used by the ModeShape 2.x file system connector.
+ * An {@link ExtraPropertiesStore} implementation that stores extra properties in legacy sidecar files adjacent to the actual file
+ * or directory corresponding to the external node. The format of these legacy files is compatible with thosed used by the
+ * ModeShape 2.x file system connector.
  */
 class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
 
     /**
-     * The regex pattern string used to parse properties. The capture groups are
-     * as follows:
+     * The regex pattern string used to parse properties. The capture groups are as follows:
      * <ol>
      * <li>property name (encoded)</li>
      * <li>property type string</li>
@@ -75,67 +74,45 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
      * <li>the single value, or comma-separated values</li>
      * </ol>
      * <p>
-     * The expression is:
-     * <code>([\S]+)\s*[(](\w+)[)]\s*([\[]?)?([^\]]+)[\]]?</code>
+     * The expression is: <code>([\S]+)\s*[(](\w+)[)]\s*([\[]?)?([^\]]+)[\]]?</code>
      * </p>
      */
-    protected static final String PROPERTY_PATTERN_STRING =
-        "([\\S]+)\\s*[(](\\w+)[)]\\s*([\\[]?)?([^\\]]+)[\\]]?";
-
-    protected static final Pattern PROPERTY_PATTERN = Pattern
-        .compile(PROPERTY_PATTERN_STRING);
+    protected static final String PROPERTY_PATTERN_STRING = "([\\S]+)\\s*[(](\\w+)[)]\\s*([\\[]?)?([^\\]]+)[\\]]?";
+    protected static final Pattern PROPERTY_PATTERN = Pattern.compile(PROPERTY_PATTERN_STRING);
 
     /**
-     * The regex pattern string used to parse quoted string property values.
-     * This is a repeating expression, and group(0) captures the characters
-     * within the quotes (including escaped double quotes).
+     * The regex pattern string used to parse quoted string property values. This is a repeating expression, and group(0) captures
+     * the characters within the quotes (including escaped double quotes).
      * <p>
      * The expression is: <code>\"((((?<=\\)\")|[^"])*)\"</code>
      * </p>
      */
-    protected static final String STRING_VALUE_PATTERN_STRING =
-        "\\\"((((?<=\\\\)\\\")|[^\"])*)\\\"";
-
-    protected static final Pattern STRING_VALUE_PATTERN = Pattern
-        .compile(STRING_VALUE_PATTERN_STRING);
+    protected static final String STRING_VALUE_PATTERN_STRING = "\\\"((((?<=\\\\)\\\")|[^\"])*)\\\"";
+    protected static final Pattern STRING_VALUE_PATTERN = Pattern.compile(STRING_VALUE_PATTERN_STRING);
 
     /**
-     * The regex pattern string used to parse non-string property values
-     * (including hexadecimal-encoded binary values). This is a repeating
-     * expression, and group(1) captures the individual values.
+     * The regex pattern string used to parse non-string property values (including hexadecimal-encoded binary values). This is a
+     * repeating expression, and group(1) captures the individual values.
      * <p>
      * The expression is: <code>([^\s,]+)\s*[,]*\s*</code>
      * </p>
      */
-    protected static final String VALUE_PATTERN_STRING =
-        "([^\\s,]+)\\s*[,]*\\s*";
-
-    protected static final Pattern VALUE_PATTERN = Pattern
-        .compile(VALUE_PATTERN_STRING);
+    protected static final String VALUE_PATTERN_STRING = "([^\\s,]+)\\s*[,]*\\s*";
+    protected static final Pattern VALUE_PATTERN = Pattern.compile(VALUE_PATTERN_STRING);
 
     public static final String DEFAULT_EXTENSION = ".modeshape";
-
-    public static final String DEFAULT_RESOURCE_EXTENSION =
-        ".content.modeshape";
+    public static final String DEFAULT_RESOURCE_EXTENSION = ".content.modeshape";
 
     private final FileSystemConnector connector;
-
     private final NamespaceRegistry registry;
-
     private final PropertyFactory propertyFactory;
-
     private final ValueFactories factories;
-
     private final ValueFactory<String> stringFactory;
-
     private final TextEncoder encoder = new XmlNameEncoder();
-
     private final TextDecoder decoder = new XmlNameEncoder();
-
     private final QuoteEncoder quoter = new QuoteEncoder();
 
-    protected LegacySidecarExtraPropertyStore(
-        final FileSystemConnector connector) {
+    protected LegacySidecarExtraPropertyStore( final FileSystemConnector connector ) {
         this.connector = connector;
         this.registry = this.connector.registry();
         this.propertyFactory = this.connector.getContext().getPropertyFactory();
@@ -149,19 +126,19 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
     }
 
     @Override
-    public Map<Name, Property> getProperties(final String id) {
+    public Map<Name, Property> getProperties( final String id ) {
         return load(id, sidecarFile(id));
     }
 
     @Override
-    public void storeProperties(final String id,
-        final Map<Name, Property> properties) {
+    public void storeProperties( final String id,
+            final Map<Name, Property> properties ) {
         write(id, sidecarFile(id), properties);
     }
 
     @Override
-    public void updateProperties(final String id,
-        final Map<Name, Property> properties) {
+    public void updateProperties( final String id,
+            final Map<Name, Property> properties ) {
         final File sidecar = sidecarFile(id);
         final Map<Name, Property> existing = load(id, sidecar);
         if (existing == null || existing.isEmpty()) {
@@ -183,7 +160,7 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
     }
 
     @Override
-    public boolean removeProperties(final String id) {
+    public boolean removeProperties( final String id ) {
         final File file = sidecarFile(id);
         if (!file.exists()) {
             return false;
@@ -192,7 +169,7 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
         return true;
     }
 
-    protected File sidecarFile(final String id) {
+    protected File sidecarFile( final String id ) {
         final File actualFile = connector.fileFor(id);
         String extension = DEFAULT_EXTENSION;
         if (connector.isContentNode(id)) {
@@ -201,8 +178,8 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
         return new File(actualFile.getAbsolutePath() + extension);
     }
 
-    protected Map<Name, Property> load(final String id,
-        final File propertiesFile) {
+    protected Map<Name, Property> load( final String id,
+            final File propertiesFile ) {
         if (!propertiesFile.exists() || !propertiesFile.canRead()) {
             return NO_PROPERTIES;
         }
@@ -222,8 +199,9 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
         }
     }
 
-    protected void write(final String id, final File propertiesFile,
-        final Map<Name, Property> properties) {
+    protected void write( final String id,
+            final File propertiesFile,
+            final Map<Name, Property> properties ) {
         if (properties.isEmpty()) {
             if (propertiesFile.exists()) {
                 // Delete the file ...
@@ -235,15 +213,13 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
             Writer fileWriter = null;
             try {
                 // Write the primary type first ...
-                final Property primaryType =
-                    properties.get(JcrLexicon.PRIMARY_TYPE);
+                final Property primaryType = properties.get(JcrLexicon.PRIMARY_TYPE);
                 if (primaryType != null) {
                     fileWriter = new FileWriter(propertiesFile);
                     write(primaryType, fileWriter);
                 }
                 // Then write the mixin types ...
-                final Property mixinTypes =
-                    properties.get(JcrLexicon.MIXIN_TYPES);
+                final Property mixinTypes = properties.get(JcrLexicon.MIXIN_TYPES);
                 if (mixinTypes != null) {
                     if (fileWriter == null) {
                         fileWriter = new FileWriter(propertiesFile);
@@ -263,8 +239,7 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
                     if (property == null) {
                         continue;
                     }
-                    if (property == primaryType || property == mixinTypes ||
-                        property == uuid) {
+                    if (property == primaryType || property == mixinTypes || property == uuid) {
                         continue;
                     }
                     if (fileWriter == null) {
@@ -285,8 +260,8 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
         }
     }
 
-    protected void write(final Property property, final Writer stream)
-        throws IOException, RepositoryException {
+    protected void write( final Property property,
+            final Writer stream ) throws IOException, RepositoryException {
         final String name = stringFactory.create(property.getName());
         stream.append(encoder.encode(name));
         if (property.isEmpty()) {
@@ -295,8 +270,7 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
             return;
         }
         stream.append(" (");
-        final PropertyType type =
-            PropertyType.discoverType(property.getFirstValue());
+        final PropertyType type = PropertyType.discoverType(property.getFirstValue());
         stream.append(type.getName().toLowerCase());
         stream.append(") ");
         if (property.isMultiple()) {
@@ -312,8 +286,7 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
             }
             String str = null;
             if (value instanceof Binary) {
-                final byte[] bytes =
-                    IoUtil.readBytes(((Binary) value).getStream());
+                final byte[] bytes = IoUtil.readBytes(((Binary)value).getStream());
                 str = StringUtil.getHexString(bytes);
             } else {
                 str = stringFactory.create(value);
@@ -333,8 +306,8 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
         stream.flush();
     }
 
-    protected Property parse(final String line, final Map<Name, Property> result)
-        throws RepositoryException {
+    protected Property parse( final String line,
+            final Map<Name, Property> result ) throws RepositoryException {
         if (line.length() == 0) {
             return null; // blank line
         }
@@ -348,8 +321,7 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
         final Matcher matcher = PROPERTY_PATTERN.matcher(line);
         final NameFactory nameFactory = factories.getNameFactory();
         if (!matcher.matches()) {
-            // It should be an empty multi-valued property, and the line
-            // consists only of the name ...
+            // It should be an empty multi-valued property, and the line consists only of the name ...
             final Name name = nameFactory.create(decoder.decode(line));
             return propertyFactory.create(name);
         }
@@ -362,14 +334,11 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
         try {
             name = factories.getNameFactory().create(nameString);
         } catch (final ValueFormatException e) {
-            // See MODE-1281. Earlier versions would write out an empty property
-            // without the trailing line feed,
-            // so we need to consider this case now. About the only thing we can
-            // do is look for two namespace-prefixed names
+            // See MODE-1281. Earlier versions would write out an empty property without the trailing line feed,
+            // so we need to consider this case now. About the only thing we can do is look for two namespace-prefixed names
             // ...
             if (nameString.indexOf(':') < nameString.lastIndexOf(':')) {
-                // This is likely two names smashed together. Use the namespace
-                // prefixes to look for where we can break this
+                // This is likely two names smashed together. Use the namespace prefixes to look for where we can break this
                 // ...
                 final Set<String> prefixes = new LinkedHashSet<String>();
                 prefixes.add(JcrLexicon.Namespace.PREFIX);
@@ -381,8 +350,7 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
                     if (index <= 0) {
                         continue;
                     }
-                    // Otherwise, we found a match. Parse the first property
-                    // name, and create an empty property ...
+                    // Otherwise, we found a match. Parse the first property name, and create an empty property ...
                     name = nameFactory.create(nameString.substring(0, index));
                     result.put(name, propertyFactory.create(name));
                     // Now parse the name of the next property and continue ...
@@ -412,8 +380,7 @@ class LegacySidecarExtraPropertyStore implements ExtraPropertiesStore {
             String valueString = valuesMatcher.group(1);
             if (binary) {
                 // The value is a hexadecimal-encoded byte array ...
-                final byte[] binaryValue =
-                    StringUtil.fromHexString(valueString);
+                final byte[] binaryValue = StringUtil.fromHexString(valueString);
                 final Object value = valueFactory.create(binaryValue);
                 values.add(value);
             } else {
